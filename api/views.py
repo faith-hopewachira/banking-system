@@ -1,48 +1,39 @@
-from django.shortcuts import render
-from rest_framework.views import APIView
-from rest_framework.response import Response
 from rest_framework import status
-from .models import Bank, Transaction
+from rest_framework.response import Response
+from rest_framework.views import APIView
+from pesabank.models import Bank, Transaction
 from .serializers import BankSerializer, TransactionSerializer
-from django.contrib.auth.models import User
+
+# This block defines three API views: BankListView, TransactionListView, and BankDetailView.
+
+# BankListView handles GET and POST requests for retrieving all banks and creating a new bank.
+# - GET request: Fetches all banks from the database and returns them in the response.
+# - POST request: Accepts data to create a new bank and returns the created bank's data if valid.
+
+# TransactionListView handles GET and POST requests for retrieving and creating transactions for a specific bank.
+# - GET request: Fetches all transactions for the specified bank (based on bank_id) and returns them in the response.
+# - POST request: Accepts transaction data, assigns it to the specified bank, and creates the transaction if the data is valid.
+
+# BankDetailView handles GET requests for fetching details of a specific bank by its primary key (pk).
+# - GET request: Retrieves a single bank by its ID, serializes it, and returns the data. If the bank is not found, it returns a 404 error response.
 
 
-"""
-class BankListView- API endpoint to handle requests related to banks for a user.
-- GET: Returns all banks belonging to the authenticated user, along with their total balance.
-
-FIELDS
-user = Get the currently authenticated user
-banks = Retrieve all banks owned by the user
-Serialize the data, then calculate the total balance across all the user's banks (e.g Equity, ABSA and NCBA)
-"""
 
 class BankListView(APIView):
-
     def get(self, request):
-        user = request.user
-        banks = Bank.objects.filter(user=user)
+        banks = Bank.objects.all()
         serializer = BankSerializer(banks, many=True)
-        total_balance = sum([bank.balance for bank in banks])
-        return Response({"banks": serializer.data, "total_balance": total_balance}, status=status.HTTP_200_OK)
+        return Response(serializer.data, status=status.HTTP_200_OK)
+
+    def post(self, request):
+        serializer = BankSerializer(data=request.data)
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data, status=status.HTTP_201_CREATED)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
-"""
-class TransactionListView- API endpoint to handle requests related to transactions for a specific bank.
-- GET: Returns all transactions for the specified bank.
-- POST: Adds a new transaction to the specified bank.
-
-GET METHOD
-transactions = Retrieve transactions for the bank
-serializer = Serialize the data
-
-
-POST METHOD
-data - Get the request data
-data['bank']- Deserialize the data and then validate the data then save the validated data
-"""
 class TransactionListView(APIView):
-
     def get(self, request, bank_id):
         transactions = Transaction.objects.filter(bank_id=bank_id)
         serializer = TransactionSerializer(transactions, many=True)
@@ -55,4 +46,15 @@ class TransactionListView(APIView):
         if serializer.is_valid():
             serializer.save()
             return Response(serializer.data, status=status.HTTP_201_CREATED)
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)  
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+
+
+class BankDetailView(APIView):
+    def get(self, request, pk):
+        try:
+            bank = Bank.objects.get(pk=pk)  # Fetching the bank by its primary key
+            serializer = BankSerializer(bank)
+            return Response(serializer.data, status=status.HTTP_200_OK)
+        except Bank.DoesNotExist:
+            return Response({"error": "Bank not found"}, status=status.HTTP_404_NOT_FOUND)

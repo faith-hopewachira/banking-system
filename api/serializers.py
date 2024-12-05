@@ -1,32 +1,21 @@
 from rest_framework import serializers
-from .models import Bank, Transaction
+from pesabank.models import Bank, Transaction
 
 
-"""
-class BankSerializer- Serializes and deserializes Bank model data inheriting from the serializers.ModelSerializers
-Converts the Bank model instances into JSON format for essential API communication.
+# This block defines two serializers: BankSerializer and TransactionSerializer.
 
-Specifies the model to serialize
-model = Bank
+# BankSerializer serializes the Bank model to convert its data into JSON format for the API.
+# - It includes fields: id, name, and balance, which represent the basic information of a bank.
 
-Specifies the fields to include in the serialized data
-fields = ['id', 'name', 'balance'] 
-
-"""
+# TransactionSerializer serializes the Transaction model to convert its data into JSON format for the API.
+# - It includes fields: id, bank (the related bank), date, and amount, which represent transaction details for a bank.
 
 class BankSerializer(serializers.ModelSerializer):
-
     class Meta:
         model = Bank
-        fields = ['id', 'name', 'balance'] 
+        fields = ['id', 'name', 'balance']
 
-
-"""
-class TransactionSerializers- Serializes and deserializes Transaction model data.
-Converts the Transaction model instances into JSON format for essential API communication.
-"""
 class TransactionSerializer(serializers.ModelSerializer):
-    
     class Meta:
         model = Transaction
-        fields = ['id', 'bank', 'amount', 'transaction_type', 'date']  
+        fields = ['id', 'bank', 'date', 'amount']

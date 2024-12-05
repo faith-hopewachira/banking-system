@@ -1,56 +1,31 @@
 from django.db import models
-from django.contrib.auth.models import User
 
 
-"""
-class Bank-Represents a bank associated with a user.
-Each bank has a name, a user (owner), and a balance.
+# This block defines two models: Bank and Transaction.
+# The Bank model represents a financial institution with the following attributes:
+# - 'name': A CharField that stores the name of the bank (maximum length of 255 characters).
+# - 'balance': A DecimalField that stores the current balance of the bank, allowing for up to 10 digits with 2 decimal places.
+# The Bank model also includes a __str__ method to return the bank's name when the object is printed or displayed.
 
-name= The name of the bank the user is registered with
-user = The user who owns this bank. If the user is deleted, all their banks are deleted too.
-balance = The total balance in the bank account.
+# The Transaction model represents a financial transaction associated with a specific bank.
+# It includes the following fields:
+# - 'bank': A ForeignKey to the Bank model, establishing a many-to-one relationship. Each transaction is linked to a bank, and when a bank is deleted, all its associated transactions are also deleted (on_delete=models.CASCADE).
+# - 'date': A DateField that stores the date the transaction occurred.
+# - 'amount': A DecimalField that stores the transaction amount, allowing up to 10 digits with 2 decimal places.
+# The Transaction model also includes a __str__ method that returns a string representation of the transaction, 
+# formatted as the amount, the associated bank's name, and the transaction date.
 
-"""
 class Bank(models.Model):
     name = models.CharField(max_length=255)
-    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='banks')  
-    balance = models.DecimalField(max_digits=12, decimal_places=2)  
+    balance = models.DecimalField(max_digits=10, decimal_places=2)
 
     def __str__(self):
-        """
-        Returns a string representation of the Bank model.
-        """
-        return f"{self.name} - {self.user.username}"
+        return self.name
 
-
-
-"""
-class Transaction- Represents a transaction in a specific bank account.
-Each transaction has an amount, type, and date.
-
-FIELDS OF TRANSACTION
-bank- represents the name of the bank
-amount- the total amount in the bank (positive or negative depending on the amount)
-transaction_type- the type of transaction.
-DEPOSIT- adding money to the account
-WITHDRAWAL- removing money from the account
-EXPENSE- represents money spent on something
-date- the date the transaction occurred
-"""
 class Transaction(models.Model):
-
-    bank = models.ForeignKey(Bank, on_delete=models.CASCADE, related_name='transactions')  
-    amount = models.DecimalField(max_digits=10, decimal_places=2)  
-    TRANSACTION_TYPES = [
-        ('DEPOSIT', 'Deposit'),
-        ('WITHDRAWAL', 'Withdrawal'),
-        ('EXPENSE', 'Expense'),
-    ]
-    transaction_type = models.CharField(max_length=20, choices=TRANSACTION_TYPES)  
+    bank = models.ForeignKey(Bank, related_name="transactions", on_delete=models.CASCADE)
     date = models.DateField()
+    amount = models.DecimalField(max_digits=10, decimal_places=2)
 
     def __str__(self):
-        """
-        Returns a string representation of the Transaction model.
-        """
-        return f"{self.transaction_type} - {self.amount} ({self.bank.name})"
+        return f"{self.amount} - {self.bank.name} on {self.date}"

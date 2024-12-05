@@ -1,9 +1,11 @@
-from .views import BankListView, TransactionListView
+
 from django.urls import path
+from .views import BankDetailView, BankListView, TransactionListView
 
 urlpatterns = [
-    # Below is an endpoint to list all banks for the authenticated user
-    path('banks/', BankListView.as_view(), name='bank-list'),  
-    # Below is an endpoint to GET and POST transactions for a specific bank
-    path('banks/<int:bank_id>/transactions/', TransactionListView.as_view(), name='transaction-list'),  
+    path('api/banks/', BankListView.as_view(), name='bank-list'),  # GET and POST banks
+    path('api/banks/<int:bank_id>/transactions/', TransactionListView.as_view(), name='transaction-list'),
+    path('banks/<int:pk>/', BankDetailView.as_view(), name='bank-detail'),
+
 ]
+
